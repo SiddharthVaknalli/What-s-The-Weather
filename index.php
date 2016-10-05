@@ -20,19 +20,20 @@
 //    $xml=simplexml_load_string($weatherXML) or die("Error: Cannot create object");
 //    echo $xml->city.name;
 
-    session_start();
-    
     $xml = "";
 
-    if($_POST){
-        if($_POST['city']){
-            $city = $_POST['city'];
+    if (isset($_GET['city'])) {
+        $city = $_GET['city'];
+        $query = $city;
+
+        // country is optional to find a location
+        if(isset($_GET['country'])) {
+            $country = $_GET['country'];
+            $query .= "," . $country;
+        }     
+        $xml = simplexml_load_file("http://api.openweathermap.org/data/2.5/weather?q=".$query."&appid=f148078a2e8b97ceba286500223a7101&mode=xml&units=metric");
             
-            $country = $_POST['country'];
-            $xml = simplexml_load_file("http://api.openweathermap.org/data/2.5/weather?q=".$city.",".$country."&appid=f148078a2e8b97ceba286500223a7101&mode=xml&units=metric");
-            
-            $imgPath = "http://openweathermap.org/img/w/".$xml->weather['icon'].".png";
-        }
+        $imgPath = "http://openweathermap.org/img/w/".$xml->weather['icon'].".png";
     }
 
 ?>
@@ -49,13 +50,14 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" crossorigin="anonymous">
         <!--Custom CSS-->
         <link rel="stylesheet" type="text/css" href="styles/main.css">
+        <title>What's The Weather</title>
     </head>
     <body>
         <div class="container" id="heading">
             WHAT'S THE WEATHER?
         </div>
         <h3 style="text-align: center;">Please enter a city and the country</h3>
-        <form class="form-inline" style="text-align: center;" method="POST">
+        <form class="form-inline" style="text-align: center;" method="GET">
             <div class="form-group">
                 <input class="form-control" type="text" name="city" placeholder="City">
             </div>
@@ -65,9 +67,8 @@
             <button class="btn btn-default" type="submit">Go!</button>
         </form>
         <br>
-        <?php if($xml) {
-            $_SESSION["visited"] = true; ?>
-            <div class="row text-center">>
+        <?php if($xml) { ?>
+            <div class="row text-center">
                 <div class="col-sm-4 col-sm-offset-4 transbox" style="text-align: center;">
                     <h3><?php echo htmlspecialchars($xml->city['name'].", ".$xml->city->country); ?></h3>
                     <img src="<?php echo htmlspecialchars($imgPath); ?>" alt="Weather Image">
@@ -85,7 +86,7 @@
                     </div>
                 </div>
             </div>
-        <?php } else if (isset($_SESSION["visited"])) { ?>
+        <?php } else if (isset($_GET['city']) || isset($_GET['country'])) { ?>
             <div class="row">
                 <div class="col-sm-4 alert alert-danger">
                     Requested location not found! Please try again.
@@ -93,18 +94,5 @@
             </div>
         <?php } ?>
 
-        <!--
-        <script
-			  src="https://code.jquery.com/jquery-3.1.1.min.js"
-			  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-			  crossorigin="anonymous">
-        </script>
-        <script>
-            //Kill the session before the tab is closed
-            $(window).on('beforeunload', function(){
-                $.get("killsession.php");
-            });
-        </script>
-        -->
     </body>
 </html>
